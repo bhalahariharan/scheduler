@@ -1,0 +1,40 @@
+.scheduleTable {
+  margin-left: 15px;
+}
+
+.cell {
+  border: 1px solid #c4c4c4;
+  width: 70px;
+  padding: 15px 10px;
+  text-align: center;
+}
+
+th.cell {
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 1px solid #c4c4c4;
+  border-left: 0;
+}
+
+.date > th.cell:not(:last-child) {
+  border-right: 1px solid #c4c4c4;
+}
+
+.selectContainer {
+  display: flex;
+  align-items: center;
+  margin: 15px 0px;
+}
+
+.selectLabel {
+  width: 120px;
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.actionButtons {
+  margin: 20px 10px;
+}
