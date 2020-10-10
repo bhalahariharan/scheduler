@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import { STATUS } from "./constants";
 
 export function getDates() {
   const date = dayjs().get("date");
@@ -19,13 +20,13 @@ export function getBackgroundColor(data) {
     return "unset";
   }
   switch (data["status"]) {
-    case "inactive":
+    case STATUS.INACTIVE:
       return "#e0e0e0";
-    case "selected":
+    case STATUS.SELECTED:
       return "#01b2ff";
-    case "booked":
+    case STATUS.BOOKED:
       return "#ff0100";
-    case "booked-inactive":
+    case STATUS.BOOKED_INACTIVE:
       return "#ff9696";
     default:
       return "unset";

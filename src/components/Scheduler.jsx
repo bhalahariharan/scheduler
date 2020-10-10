@@ -4,29 +4,24 @@ import Button from "@material-ui/core/Button";
 import PreviewDialog from "./PreviewDialog";
 import style from "./index.module.css";
 
-import { getBackgroundColor, getDates, getTime } from "../utils";
+import {
+  DAYS,
+  DEFAULT_ACTIVE_HOURS,
+  INACTIVE_HOURS,
+  STATUS,
+} from "../shared/constants";
+import { getBackgroundColor, getDates, getTime } from "../shared/utils";
 
-const INACTIVE_HOURS = 2;
-const DEFAULT_ACTIVE_HOURS = 2;
-const days = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
 const initialSchedule = Array(24)
   .fill(1)
-  .map(() => new Array(days.length).fill(false));
+  .map(() => new Array(DAYS.length).fill(false));
 
 function Scheduler() {
-  const [state, setState] = useState({
+  const [scheduleState, setScheduleState] = useState({
     schedule: initialSchedule,
     openDialog: false,
   });
-  const { schedule, openDialog, scheduleData = {} } = state;
+  const { schedule, openDialog, scheduleData = {} } = scheduleState;
 
   function onCellClick(event) {
     let [i, j] = event.target.id.split(",");
@@ -34,12 +29,17 @@ function Scheduler() {
     j = Number(j);
 
     if (
-      ["selected", "inactive", "booked", "booked-inactive"].includes(
+      [
+        STATUS.SELECTED,
+        STATUS.INACTIVE,
+        STATUS.BOOKED,
+        STATUS.BOOKED_INACTIVE,
+      ].includes(
         typeof schedule[i][j] === "object" ? schedule[i][j]["status"] : ""
       )
     ) {
-      setState({
-        ...state,
+      setScheduleState({
+        ...scheduleState,
         scheduleData: schedule[i][j],
         openDialog: true,
       });
@@ -65,28 +65,32 @@ function Scheduler() {
       .add(j, "day")
       .add(i + 3, "hour")
       .toISOString();
-    const data = { status: "selected", start, end };
+    const data = { status: STATUS.SELECTED, start, end };
     copiedSchedule[i][j] = data;
     for (let index = 1; index <= DEFAULT_ACTIVE_HOURS; index++) {
       copiedSchedule[i + index][j] = data;
     }
     for (let index = 1; index <= INACTIVE_HOURS; index++) {
-      copiedSchedule[i - index][j] = { ...data, status: "inactive" };
+      copiedSchedule[i - index][j] = { ...data, status: STATUS.INACTIVE };
       copiedSchedule[i + index + DEFAULT_ACTIVE_HOURS][j] = {
         ...data,
-        status: "inactive",
+        status: STATUS.INACTIVE,
       };
     }
 
-    setState({
-      ...state,
+    setScheduleState({
+      ...scheduleState,
       schedule: copiedSchedule,
       scheduleData: false,
     });
   }
 
   function onDialogClose() {
-    setState({ ...state, openDialog: false, scheduleData: false });
+    setScheduleState({
+      ...scheduleState,
+      openDialog: false,
+      scheduleData: false,
+    });
   }
 
   function onDelete(start, end) {
@@ -106,8 +110,8 @@ function Scheduler() {
         }
       }
     }
-    setState({
-      ...state,
+    setScheduleState({
+      ...scheduleState,
       openDialog: false,
       scheduleData: false,
       schedule: copiedSchedule,
@@ -138,7 +142,7 @@ function Scheduler() {
         if (j === startDay && i >= startHour && i < endHour) {
           copiedSchedule[i][j] = {
             ...slotData,
-            status: "booked",
+            status: STATUS.BOOKED,
           };
         }
         if (
@@ -148,19 +152,19 @@ function Scheduler() {
         ) {
           copiedSchedule[i][j] = {
             ...slotData,
-            status: "booked-inactive",
+            status: STATUS.BOOKED_INACTIVE,
           };
         }
         if (j === startDay && i >= endHour && i < endHour + INACTIVE_HOURS) {
           copiedSchedule[i][j] = {
             ...slotData,
-            status: "booked-inactive",
+            status: STATUS.BOOKED_INACTIVE,
           };
         }
       }
     }
-    setState({
-      ...state,
+    setScheduleState({
+      ...scheduleState,
       openDialog: false,
       scheduleData: false,
       schedule: copiedSchedule,
@@ -170,8 +174,8 @@ function Scheduler() {
   function loadData() {
     let savedData = localStorage.getItem("bookedSlots");
     if (savedData === null) {
-      setState({
-        ...state,
+      setScheduleState({
+        ...scheduleState,
         openDialog: false,
         scheduleData: false,
         schedule: initialSchedule,
@@ -203,7 +207,7 @@ function Scheduler() {
           if (j === startDay && i >= startHour && i < endHour) {
             copiedSchedule[i][j] = {
               ...slotData,
-              status: "booked",
+              status: STATUS.BOOKED,
             };
           }
           if (
@@ -213,27 +217,27 @@ function Scheduler() {
           ) {
             copiedSchedule[i][j] = {
               ...slotData,
-              status: "booked-inactive",
+              status: STATUS.BOOKED_INACTIVE,
             };
           }
           if (j === startDay && i >= endHour && i < endHour + INACTIVE_HOURS) {
             copiedSchedule[i][j] = {
               ...slotData,
-              status: "booked-inactive",
+              status: STATUS.BOOKED_INACTIVE,
             };
           }
         }
       }
     }
-    setState({
-      ...state,
+    setScheduleState({
+      ...scheduleState,
       openDialog: false,
       scheduleData: false,
       schedule: copiedSchedule,
     });
   }
 
-  function clearLocalStorage() {
+  function clearSchedule() {
     localStorage.clear();
     window.location.reload();
   }
@@ -260,7 +264,7 @@ function Scheduler() {
           <thead>
             <tr>
               <th></th>
-              {days.map((day) => (
+              {DAYS.map((day) => (
                 <th className={style.cell} key={day}>
                   {day.slice(0, 1)}
                 </th>
@@ -302,8 +306,8 @@ function Scheduler() {
         </table>
       </div>
       <div className={style.actionButtons}>
-        <Button color="primary" variant="outlined" onClick={clearLocalStorage}>
-          Clear Local Storage
+        <Button color="primary" variant="outlined" onClick={clearSchedule}>
+          Clear Schedule
         </Button>
       </div>
     </>
