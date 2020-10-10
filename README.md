@@ -1,3 +1,7 @@
+## Digival Scheduler
+
+Demo available at [digival-scheduler.surge.sh](https://digival-scheduler.surge.sh/)
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
