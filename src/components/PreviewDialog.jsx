@@ -101,6 +101,18 @@ function PreviewDialog({ open, onClose, onSave, onDelete, scheduleData }) {
   }
 
   function handleSave() {
+    if (start > end) {
+      alert(
+        "The start time is past the end time. Please select a valid start and end time."
+      );
+      return;
+    }
+    if (start === end) {
+      alert(
+        "The start and end time cannot be same. Please select a valid start and end time."
+      );
+      return;
+    }
     onSave({
       start: dayjs(scheduleData["start"]).set("hour", start).toISOString(),
       end: dayjs(scheduleData["start"]).set("hour", end).toISOString(),
