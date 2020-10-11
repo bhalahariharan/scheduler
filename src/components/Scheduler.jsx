@@ -10,7 +10,16 @@ import {
   INACTIVE_HOURS,
   STATUS,
 } from "../shared/constants";
-import { getBackgroundColor, getDates, getTime } from "../shared/utils";
+import {
+  getBackgroundColor,
+  getDates,
+  getTime,
+  getUpdatedSchedule,
+  getSavedData,
+  saveToLocalStorage,
+  clearSchedule,
+  deleteSelectedSchedule,
+} from "../shared/utils";
 
 const initialSchedule = Array(24)
   .fill(1)
@@ -94,85 +103,31 @@ function Scheduler() {
   }
 
   function onDelete(start, end) {
-    let [startDay, startHour] = dayjs(start).format("D,H").split(",");
-    const endHour = dayjs(end).get("hour");
-    startDay = Number(startDay) - dayjs().startOf("date").get("date");
-    startHour = Number(startHour);
-    const copiedSchedule = [...schedule];
-    for (let i = 0; i < 24; i++) {
-      for (let j = 0; j < 7; j++) {
-        if (
-          j === startDay &&
-          i >= startHour - INACTIVE_HOURS &&
-          i <= endHour + INACTIVE_HOURS
-        ) {
-          copiedSchedule[i][j] = false;
-        }
-      }
-    }
+    const updatedSchedule = deleteSelectedSchedule(start, end, schedule);
     setScheduleState({
       ...scheduleState,
       openDialog: false,
       scheduleData: false,
-      schedule: copiedSchedule,
+      schedule: updatedSchedule,
     });
   }
 
-  function onSave(data) {
-    let savedData = localStorage.getItem("bookedSlots");
-    if (savedData === null) {
-      localStorage.setItem("bookedSlots", JSON.stringify([data]));
-    } else {
-      savedData = [data, ...JSON.parse(savedData)];
-      localStorage.setItem("bookedSlots", JSON.stringify(savedData));
-    }
-    let [startDay, startHour] = dayjs(data.start).format("D,H").split(",");
-    const endHour = dayjs(data.end).get("hour");
-    startDay = Number(startDay) - dayjs().startOf("date").get("date");
-    startHour = Number(startHour);
-    const copiedSchedule = [...schedule];
-    for (let i = 0; i < 24; i++) {
-      for (let j = 0; j < 7; j++) {
-        const slotData = {
-          start: data.start,
-          end: data.end,
-          repeatForTwoWeeks: data.repeatForTwoWeeks,
-          noCost: data.noCost,
-        };
-        if (j === startDay && i >= startHour && i < endHour) {
-          copiedSchedule[i][j] = {
-            ...slotData,
-            status: STATUS.BOOKED,
-          };
-        }
-        if (
-          j === startDay &&
-          i >= startHour - INACTIVE_HOURS &&
-          i < startHour
-        ) {
-          copiedSchedule[i][j] = {
-            ...slotData,
-            status: STATUS.BOOKED_INACTIVE,
-          };
-        }
-        if (j === startDay && i >= endHour && i < endHour + INACTIVE_HOURS) {
-          copiedSchedule[i][j] = {
-            ...slotData,
-            status: STATUS.BOOKED_INACTIVE,
-          };
-        }
-      }
-    }
+  function onSave(data, prevStartDate, prevEndDate) {
+    saveToLocalStorage(data);
+    const updatedSchedule = getUpdatedSchedule(
+      data,
+      deleteSelectedSchedule(prevStartDate, prevEndDate, schedule)
+    );
     setScheduleState({
       ...scheduleState,
       openDialog: false,
       scheduleData: false,
-      schedule: copiedSchedule,
+      schedule: updatedSchedule,
     });
   }
 
   function loadData() {
-    let savedData = localStorage.getItem("bookedSlots");
+    const savedData = getSavedData();
     if (savedData === null) {
       setScheduleState({
         ...scheduleState,
@@ -182,64 +137,13 @@ function Scheduler() {
       });
       return;
     }
-    savedData = JSON.parse(savedData);
-    savedData = savedData.filter((s) => {
-      const startDate = dayjs(s.start).get("date");
-      const startOfDate = dayjs().startOf("date").get("date");
-      return startDate - startOfDate >= 0 && startDate - startOfDate <= 6
-        ? true
-        : false;
-    });
-    const copiedSchedule = [...schedule];
-    for (const slot of savedData) {
-      let [startDay, startHour] = dayjs(slot.start).format("D,H").split(",");
-      const endHour = dayjs(slot.end).get("hour");
-      startDay = Number(startDay) - dayjs().startOf("date").get("date");
-      startHour = Number(startHour);
-      for (let i = 0; i < 24; i++) {
-        for (let j = 0; j < 7; j++) {
-          const slotData = {
-            start: slot.start,
-            end: slot.end,
-            repeatForTwoWeeks: slot.repeatForTwoWeeks,
-            noCost: slot.noCost,
-          };
-          if (j === startDay && i >= startHour && i < endHour) {
-            copiedSchedule[i][j] = {
-              ...slotData,
-              status: STATUS.BOOKED,
-            };
-          }
-          if (
-            j === startDay &&
-            i >= startHour - INACTIVE_HOURS &&
-            i < startHour
-          ) {
-            copiedSchedule[i][j] = {
-              ...slotData,
-              status: STATUS.BOOKED_INACTIVE,
-            };
-          }
-          if (j === startDay && i >= endHour && i < endHour + INACTIVE_HOURS) {
-            copiedSchedule[i][j] = {
-              ...slotData,
-              status: STATUS.BOOKED_INACTIVE,
-            };
-          }
-        }
-      }
-    }
+    const updatedSchedule = getUpdatedSchedule(savedData, schedule);
     setScheduleState({
       ...scheduleState,
       openDialog: false,
       scheduleData: false,
-      schedule: copiedSchedule,
+      schedule: updatedSchedule,
     });
-  }
-
-  function clearSchedule() {
-    localStorage.clear();
-    window.location.reload();
   }
 
   useEffect(() => {

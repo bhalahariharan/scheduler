@@ -113,12 +113,16 @@ function PreviewDialog({ open, onClose, onSave, onDelete, scheduleData }) {
       );
       return;
     }
-    onSave({
-      start: dayjs(scheduleData["start"]).set("hour", start).toISOString(),
-      end: dayjs(scheduleData["start"]).set("hour", end).toISOString(),
-      repeatForTwoWeeks,
-      noCost,
-    });
+    onSave(
+      {
+        start: dayjs(scheduleData["start"]).set("hour", start).toISOString(),
+        end: dayjs(scheduleData["start"]).set("hour", end).toISOString(),
+        repeatForTwoWeeks,
+        noCost,
+      },
+      scheduleData["start"],
+      scheduleData["end"]
+    );
   }
 
   return (
