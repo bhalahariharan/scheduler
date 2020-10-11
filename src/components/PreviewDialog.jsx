@@ -15,6 +15,7 @@ import DialogActions from "@material-ui/core/DialogActions";
 
 import style from "./index.module.css";
 
+import { INACTIVE_HOURS } from "../shared/constants";
 import closeIcon from "../assets/close.svg";
 
 const useStyles = makeStyles(() => ({
@@ -42,7 +43,11 @@ function getMenuItems() {
   return time.map((_, i) => {
     const value = getTime(i);
     return (
-      <MenuItem value={i} key={value}>
+      <MenuItem
+        value={i}
+        key={value}
+        disabled={i < INACTIVE_HOURS || i > time.length - INACTIVE_HOURS}
+      >
         {value}
       </MenuItem>
     );
